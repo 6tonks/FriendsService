@@ -36,7 +36,7 @@ class Neo4JDataResource:
         :return:  Result of the query, which executes as a single, standalone transaction.
         """
         try:
-            tx = self._graph.begin(autocommit=False)
+            tx = self._graph.begin(readonly=True)
             result = self._graph.run(qs, args)
             return result
         except Exception as e:
@@ -83,28 +83,41 @@ class Neo4JDataResource:
 
     def create_node(self, label, **kwargs):
         n = Node(label, **kwargs)
-        tx = self._graph.begin(autocommit=True)
+        tx = self._graph.begin(readonly=False)
         tx.create(n)
+        tx.commit()
         return n
 
     def create_relationship(self, template_a, template_b, relationship):
-        node_a = self.find_nodes_by_template(template_a)[0]
-        node_b = self.find_nodes_by_template(template_b)[0]
-        relationship = Relationship(node_a, relationship, node_b)
-        self._graph.create(relationship)
-        return relationship
-
-    def delete_relationship(self, template_a, template_b, relationship):
-        node_a = self.find_nodes_by_template(template_a)[0]
-        node_b = self.find_nodes_by_template(template_b)[0]
-        relationship = Relationship(node_a, relationship, node_b)
-
         try:
-            tx = self._graph.begin(autocommit=True)
-            tx.separate(relationship)
+            node_a = self.find_nodes_by_template(template_a)[0]
+            node_b = self.find_nodes_by_template(template_b)[0]
+            relationship_obj = Relationship(node_a, relationship, node_b)
+
+            tx = self._graph.begin(readonly=False)
+            tx.create(relationship_obj)
+            tx.commit()
 
         except Exception as e:
-            print("Error NEO4J Delete: " + str(e))
+            print("Error NEO4J Create relationship: " + str(e))
+            tx.rollback()
+            # To distinguish whether it is not found or error
+            raise Exception(e)
+
+        return relationship_obj
+
+    def delete_relationship(self, template_a, template_b, relationship):
+        try:
+            node_a = self.find_nodes_by_template(template_a)[0]
+            node_b = self.find_nodes_by_template(template_b)[0]
+            relationship_obj = self._relationship_matcher.match(nodes=[node_a, node_b], r_type=relationship).first()
+
+            tx = self._graph.begin(readonly=False)
+            tx.separate(relationship_obj)
+            tx.commit()
+
+        except Exception as e:
+            print("Error NEO4J Delete relationship: " + str(e))
             tx.rollback()
             # To distinguish whether it is not found or error
             raise Exception(e)
@@ -116,7 +129,7 @@ class Neo4JDataResource:
         props = template.get("template", None)
         props_str = ''
         for key, value in props.items():
-            props_str += "{}: '{}',".format(key, value)
+            props_str += "{}: {},".format(key, value)
         props_str = '{' + props_str[:-1] + '}'
 
         q = "MATCH (n:{} {})-[:{}]->(m) RETURN m".format(label, props_str, relationship)
@@ -132,7 +145,7 @@ class Neo4JDataResource:
         props = template.get("template", None)
         props_str = ''
         for key, value in props.items():
-            props_str += "{}: '{}',".format(key, value)
+            props_str += "{}: {},".format(key, value)
         props_str = '{' + props_str[:-1] + '}'
 
         q = "MATCH (n:{} {})<-[:{}]-(m) RETURN m".format(label, props_str, relationship)
@@ -166,11 +179,11 @@ class Neo4JDataResource:
     def delete_node(self, template):
         nodes = None
         try:
-            tx = self._graph.begin(autocommit=True)
+            tx = self._graph.begin(readonly=False)
             nodes = self.find_nodes_by_template(template)
             for node in nodes:
                 tx.delete(node)
-
+            tx.commit()
         except Exception as e:
             print("Error NEO4J Delete: " + str(e))
             tx.rollback()

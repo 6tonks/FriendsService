@@ -1,5 +1,4 @@
 from flask import Flask, Response, request
-import database_services.RDBService as d_service
 from flask_cors import CORS
 import json
 import uuid
@@ -20,6 +19,7 @@ CORS(app)
 @app.route('/friends/<user>', methods=["GET"])
 def get_friends(user):
     try:
+        user = int(user)
         res = FriendsResource.get_friends(user)
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -33,6 +33,7 @@ def get_friends(user):
 @app.route('/friends/<user>/pending', methods=["GET"])
 def get_pending_friends(user):
     try:
+        user = int(user)
         res = FriendsResource.get_pending_friends(user)
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -46,6 +47,7 @@ def get_pending_friends(user):
 @app.route('/friends/<user>/pending_request', methods=["GET"])
 def get_pending_friends_request(user):
     try:
+        user = int(user)
         res = FriendsResource.get_pending_friends_request(user)
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -60,6 +62,7 @@ def accept_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("accept_friend_request", inputs)
+        user = int(user)
 
         if inputs.method == "POST":
             friend = inputs.data["friend_id"]
@@ -79,6 +82,7 @@ def decline_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("decline_friend_request", inputs)
+        user = int(user)
 
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
@@ -98,6 +102,7 @@ def add_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("add_friend_request", inputs)
+        user = int(user)
 
         if inputs.method == "POST":
             friend = inputs.data["friend_id"]
@@ -112,12 +117,12 @@ def add_friend_request(user):
 
     return rsp
 
-
 @app.route('/friends/<user>/cancel', methods=["DELETE"])
 def cancel_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("cancel_friend_request", inputs)
+        user = int(user)
 
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
@@ -132,11 +137,12 @@ def cancel_friend_request(user):
 
     return rsp
 
-@app.route('/friends/<user>/remove', methods=["DELETE"])
+@app.route('/friends/<user>/delete', methods=["DELETE"])
 def delete_friend(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("delete_friend", inputs)
+        user = int(user)
 
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
@@ -170,7 +176,7 @@ def insert_user():
 
     return rsp
 
-@app.route('/friends/delete', methods=["POST"])
+@app.route('/friends/delete', methods=["DELETE"])
 def delete_user():
     try:
         inputs = rest_utils.RESTContext(request)

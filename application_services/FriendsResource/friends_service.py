@@ -14,7 +14,7 @@ class FriendsResource(BaseApplicationResource):
             'label': "user",
             'template': {"user_id": user},
         }
-        res = db_resource.find_by_node_relationship_outward(template, relationship="friend")
+        res = db_resource.find_by_node_relationship_outward(template, relationship="FRIEND")
         return res
 
     @classmethod
@@ -24,7 +24,7 @@ class FriendsResource(BaseApplicationResource):
             'label': "user",
             'template': {"user_id": user},
         }
-        res = db_resource.find_by_node_relationship_inward(template, relationship="pending_friend")
+        res = db_resource.find_by_node_relationship_inward(template, relationship="PENDING_FRIEND")
         return res
 
     @classmethod
@@ -34,7 +34,7 @@ class FriendsResource(BaseApplicationResource):
             "label": "user",
             "template": {"user_id": user},
         }
-        res = db_resource.find_by_node_relationship_outward(template, relationship="pending_friend")
+        res = db_resource.find_by_node_relationship_outward(template, relationship="PENDING_FRIEND")
         return res
 
     @classmethod
@@ -49,11 +49,11 @@ class FriendsResource(BaseApplicationResource):
             "template": {"user_id": friend},
         }
         # Bidirectional
-        db_resource.create_relationship(user_template, friend_template, relationship="friend")
-        db_resource.create_relationship(friend_template, user_template, relationship="friend")
+        db_resource.create_relationship(user_template, friend_template, relationship="FRIEND")
+        db_resource.create_relationship(friend_template, user_template, relationship="FRIEND")
 
         # Delete pending request
-        db_resource.delete_relationship(friend_template, user_template, relationship="pending_friend")
+        db_resource.delete_relationship(friend_template, user_template, relationship="PENDING_FRIEND")
         return True
 
     @classmethod
@@ -68,7 +68,7 @@ class FriendsResource(BaseApplicationResource):
             "template": {"user_id": friend},
         }
         # Delete pending request
-        db_resource.delete_relationship(friend_template, user_template, relationship="pending_friend")
+        db_resource.delete_relationship(friend_template, user_template, relationship="PENDING_FRIEND")
         return True
 
     @classmethod
@@ -82,8 +82,8 @@ class FriendsResource(BaseApplicationResource):
             "label": "user",
             "template": {"user_id": friend},
         }
-        db_resource.create_relationship(user_template, friend_template, relationship="pending_friend")
-        return True
+        res = db_resource.create_relationship(user_template, friend_template, relationship="PENDING_FRIEND")
+        return res
 
     @classmethod
     def cancel_friend_request(cls, user, friend):
@@ -97,7 +97,7 @@ class FriendsResource(BaseApplicationResource):
             "template": {"user_id": friend},
         }
         # Delete pending request
-        db_resource.delete_relationship(user_template, friend_template, relationship="pending_friend")
+        db_resource.delete_relationship(user_template, friend_template, relationship="PENDING_FRIEND")
         return True
 
     @classmethod
@@ -112,8 +112,8 @@ class FriendsResource(BaseApplicationResource):
             "template": {"user_id": friend},
         }
         # Delete friend bidirectional
-        db_resource.delete_relationship(user_template, friend_template, relationship="friend")
-        db_resource.delete_relationship(friend_template, user_template, relationship="friend")
+        db_resource.delete_relationship(user_template, friend_template, relationship="FRIEND")
+        db_resource.delete_relationship(friend_template, user_template, relationship="FRIEND")
         return True
 
     @classmethod

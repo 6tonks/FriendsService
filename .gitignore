@@ -1,4 +1,6 @@
 # Byte-compiled / optimized / DLL files
+env.sh
+.ebextensions/environment.config
 .idea/
 .DS_Store
 __pycache__/

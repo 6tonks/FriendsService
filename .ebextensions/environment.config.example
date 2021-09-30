@@ -1,0 +1,7 @@
+option_settings:
+  aws:elasticbeanstalk:application:environment:
+    DBTYPE: neo4j
+    DBHOST: localhost
+    DBPORT: 7687
+    DBUSER: neo4j
+    DBPASSWORD: password
