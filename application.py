@@ -12,25 +12,25 @@ logger.setLevel(logging.INFO)
 from application_services.FriendsResource.friends_service import FriendsResource
 from utils import rest_utils
 
-app = Flask(__name__)
-CORS(app)
+application = Flask(__name__)
+CORS(application)
 
 
-@app.route('/friends/<user>', methods=["GET"])
+@application.route('/friends/<user>', methods=["GET"])
 def get_friends(user):
     try:
         user = int(user)
         res = FriendsResource.get_friends(user)
-        rsp = Response(json.dumps(res), status=200, content_type="application/json")
+        rsp = Response(json.dumps(res), status=200, content_type="applicationlication/json")
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>, e = ", e)
+        logging.error("/friends/<user>, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
 # Return list of pending friends that added you
-@app.route('/friends/<user>/pending', methods=["GET"])
+@application.route('/friends/<user>/pending', methods=["GET"])
 def get_pending_friends(user):
     try:
         user = int(user)
@@ -38,13 +38,13 @@ def get_pending_friends(user):
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>/pending, e = ", e)
+        logging.error("/friends/<user>/pending, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
 # Return list of pending friends that you added
-@app.route('/friends/<user>/pending_request', methods=["GET"])
+@application.route('/friends/<user>/pending_request', methods=["GET"])
 def get_pending_friends_request(user):
     try:
         user = int(user)
@@ -52,12 +52,12 @@ def get_pending_friends_request(user):
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>/pending_request, e = ", e)
+        logging.error("/friends/<user>/pending_request, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
-@app.route('/friends/<user>/accept', methods=["POST"])
+@application.route('/friends/<user>/accept', methods=["POST"])
 def accept_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
@@ -72,12 +72,12 @@ def accept_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>/accept, e = ", e)
+        logging.error("/friends/<user>/accept, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
-@app.route('/friends/<user>/decline', methods=["DELETE"])
+@application.route('/friends/<user>/decline', methods=["DELETE"])
 def decline_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
@@ -92,12 +92,12 @@ def decline_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>/decline, e = ", e)
+        logging.error("/friends/<user>/decline, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
-@app.route('/friends/<user>/add', methods=["POST"])
+@application.route('/friends/<user>/add', methods=["POST"])
 def add_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
@@ -112,12 +112,12 @@ def add_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>/add, e = ", e)
+        logging.error("/friends/<user>/add, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
-@app.route('/friends/<user>/cancel', methods=["DELETE"])
+@application.route('/friends/<user>/cancel', methods=["DELETE"])
 def cancel_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
@@ -132,12 +132,12 @@ def cancel_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>/cancel, e = ", e)
+        logging.error("/friends/<user>/cancel, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
-@app.route('/friends/<user>/delete', methods=["DELETE"])
+@application.route('/friends/<user>/delete', methods=["DELETE"])
 def delete_friend(user):
     try:
         inputs = rest_utils.RESTContext(request)
@@ -152,12 +152,12 @@ def delete_friend(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        print("/friends/<user>/remove, e = ", e)
+        logging.error("/friends/<user>/remove, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
-@app.route('/friends/insert', methods=["POST"])
+@application.route('/friends/insert', methods=["POST"])
 def insert_user():
     try:
         inputs = rest_utils.RESTContext(request)
@@ -171,12 +171,12 @@ def insert_user():
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        print("/friends/insert, e = ", e)
+        logging.error("/friends/insert, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
-@app.route('/friends/delete', methods=["DELETE"])
+@application.route('/friends/delete', methods=["DELETE"])
 def delete_user():
     try:
         inputs = rest_utils.RESTContext(request)
@@ -190,10 +190,10 @@ def delete_user():
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        print("/friends/delete, e = ", e)
+        logging.error("/friends/delete, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    application.run(host="0.0.0.0", port=5000)

@@ -2,8 +2,7 @@ from py2neo import data, Graph, NodeMatcher, Node, Relationship, RelationshipMat
 """
 See https://py2neo.org/v4/
 """
-import uuid
-
+import logging
 
 class Neo4JDataResource:
     """
@@ -40,7 +39,7 @@ class Neo4JDataResource:
             result = self._graph.run(qs, args)
             return result
         except Exception as e:
-            print("Run exaception = ", e)
+            logging.error("Run exception = {}".format(e))
 
     def run_match(self, labels=None, properties=None):
         """
@@ -99,7 +98,7 @@ class Neo4JDataResource:
             tx.commit()
 
         except Exception as e:
-            print("Error NEO4J Create relationship: " + str(e))
+            logging.error("Error NEO4J Create relationship: " + str(e))
             tx.rollback()
             # To distinguish whether it is not found or error
             raise Exception(e)
@@ -117,7 +116,7 @@ class Neo4JDataResource:
             tx.commit()
 
         except Exception as e:
-            print("Error NEO4J Delete relationship: " + str(e))
+            logging.error("Error NEO4J Delete relationship: " + str(e))
             tx.rollback()
             # To distinguish whether it is not found or error
             raise Exception(e)
@@ -185,7 +184,7 @@ class Neo4JDataResource:
                 tx.delete(node)
             tx.commit()
         except Exception as e:
-            print("Error NEO4J Delete: " + str(e))
+            logging.error("Error NEO4J Delete: " + str(e))
             tx.rollback()
             # To distinguish whether it is not found or error
             raise Exception(e)
