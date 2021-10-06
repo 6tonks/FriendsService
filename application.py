@@ -21,7 +21,7 @@ def get_friends(user):
     try:
         user = int(user)
         res = FriendsResource.get_friends(user)
-        rsp = Response(json.dumps(res), status=200, content_type="applicationlication/json")
+        rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
         logging.error("/friends/<user>, e = {}".format(e))
