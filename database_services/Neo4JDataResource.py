@@ -3,6 +3,7 @@ from py2neo import data, Graph, NodeMatcher, Node, Relationship, RelationshipMat
 See https://py2neo.org/v4/
 """
 import logging
+import datetime as dt
 
 class Neo4JDataResource:
     """
@@ -91,7 +92,8 @@ class Neo4JDataResource:
         try:
             node_a = self.find_nodes_by_template(template_a)[0]
             node_b = self.find_nodes_by_template(template_b)[0]
-            relationship_obj = Relationship(node_a, relationship, node_b)
+            ts = dt.datetime.utcnow()
+            relationship_obj = Relationship(node_a, relationship, node_b, timestamp=ts.strftime("%Y-%m-%d %H:%M:%S"))
 
             tx = self._graph.begin(readonly=False)
             tx.create(relationship_obj)
@@ -178,8 +180,8 @@ class Neo4JDataResource:
     def delete_node(self, template):
         nodes = None
         try:
-            tx = self._graph.begin(readonly=False)
             nodes = self.find_nodes_by_template(template)
+            tx = self._graph.begin(readonly=False)
             for node in nodes:
                 tx.delete(node)
             tx.commit()

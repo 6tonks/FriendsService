@@ -12,7 +12,7 @@ class FriendsResource(BaseApplicationResource):
         db_resource = context.get_db_resource()
         template = {
             'label': "user",
-            'template': {"user_id": user},
+            'template': {"user_id": "'{}'".format(user)},
         }
         res = db_resource.find_by_node_relationship_outward(template, relationship="FRIEND")
         return res
@@ -22,7 +22,7 @@ class FriendsResource(BaseApplicationResource):
         db_resource = context.get_db_resource()
         template = {
             'label': "user",
-            'template': {"user_id": user},
+            'template': {"user_id": "'{}'".format(user)},
         }
         res = db_resource.find_by_node_relationship_inward(template, relationship="PENDING_FRIEND")
         return res
@@ -32,7 +32,7 @@ class FriendsResource(BaseApplicationResource):
         db_resource = context.get_db_resource()
         template = {
             "label": "user",
-            "template": {"user_id": user},
+            'template': {"user_id": "'{}'".format(user)},
         }
         res = db_resource.find_by_node_relationship_outward(template, relationship="PENDING_FRIEND")
         return res

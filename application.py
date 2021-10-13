@@ -19,9 +19,9 @@ CORS(application)
 @application.route('/friends/<user>', methods=["GET"])
 def get_friends(user):
     try:
-        user = int(user)
+        user = str(user)
         res = FriendsResource.get_friends(user)
-        rsp = Response(json.dumps(res), status=200, content_type="applicationlication/json")
+        rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
         logging.error("/friends/<user>, e = {}".format(e))
@@ -33,7 +33,7 @@ def get_friends(user):
 @application.route('/friends/<user>/pending', methods=["GET"])
 def get_pending_friends(user):
     try:
-        user = int(user)
+        user = str(user)
         res = FriendsResource.get_pending_friends(user)
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -47,7 +47,7 @@ def get_pending_friends(user):
 @application.route('/friends/<user>/pending_request', methods=["GET"])
 def get_pending_friends_request(user):
     try:
-        user = int(user)
+        user = str(user)
         res = FriendsResource.get_pending_friends_request(user)
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -62,7 +62,7 @@ def accept_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("accept_friend_request", inputs)
-        user = int(user)
+        user = str(user)
 
         if inputs.method == "POST":
             friend = inputs.data["friend_id"]
@@ -82,7 +82,7 @@ def decline_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("decline_friend_request", inputs)
-        user = int(user)
+        user = str(user)
 
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
@@ -102,7 +102,7 @@ def add_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("add_friend_request", inputs)
-        user = int(user)
+        user = str(user)
 
         if inputs.method == "POST":
             friend = inputs.data["friend_id"]
@@ -122,7 +122,7 @@ def cancel_friend_request(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("cancel_friend_request", inputs)
-        user = int(user)
+        user = str(user)
 
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
@@ -142,7 +142,7 @@ def delete_friend(user):
     try:
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("delete_friend", inputs)
-        user = int(user)
+        user = str(user)
 
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
