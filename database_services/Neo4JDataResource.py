@@ -89,13 +89,13 @@ class Neo4JDataResource:
         return n
 
     def create_relationship(self, template_a, template_b, relationship):
-        tx = self._graph.begin(readonly=False)
         try:
             node_a = self.find_nodes_by_template(template_a)[0]
             node_b = self.find_nodes_by_template(template_b)[0]
             ts = dt.datetime.utcnow()
             relationship_obj = Relationship(node_a, relationship, node_b, timestamp=ts.strftime("%Y-%m-%d %H:%M:%S"))
 
+            tx = self._graph.begin(readonly=False)
             tx.create(relationship_obj)
             tx.commit()
 
@@ -108,12 +108,12 @@ class Neo4JDataResource:
         return relationship_obj
 
     def delete_relationship(self, template_a, template_b, relationship):
-        tx = self._graph.begin(readonly=False)
         try:
             node_a = self.find_nodes_by_template(template_a)[0]
             node_b = self.find_nodes_by_template(template_b)[0]
             relationship_obj = self._relationship_matcher.match(nodes=[node_a, node_b], r_type=relationship).first()
 
+            tx = self._graph.begin(readonly=False)
             tx.separate(relationship_obj)
             tx.commit()
 
@@ -179,9 +179,9 @@ class Neo4JDataResource:
 
     def delete_node(self, template):
         nodes = None
-        tx = self._graph.begin(readonly=False)
         try:
             nodes = self.find_nodes_by_template(template)
+            tx = self._graph.begin(readonly=False)
             for node in nodes:
                 tx.delete(node)
             tx.commit()
