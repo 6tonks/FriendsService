@@ -2,7 +2,7 @@ from flask import Flask, Response, request
 from flask_cors import CORS
 import json
 import uuid
-
+import boto3
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -12,9 +12,16 @@ logger.setLevel(logging.INFO)
 from application_services.FriendsResource.friends_service import FriendsResource
 from utils import rest_utils
 
+after_request_dict = {
+    "add_friend_request": {"POST": {"subject": "NEW FRIEND REQUEST ADDED"}},
+    "accept_friend_request": {"POST": {"subject": "NEW FRIEND ADDED"}},
+    "decline_friend_request": {"DELETE": {"subject": "A FRIEND REQUEST IS DECLINED"}},
+    "cancel_friend_request": {"DELETE": {"subject": "A FRIEND REQUEST IS CANCELLED"}},
+    "delete_friend": {"DELETE": {"subject": "A FRIEND IS DELETED"}}
+}
+
 application = Flask(__name__)
 CORS(application)
-
 
 @application.route('/friends/<user>', methods=["GET"])
 def get_friends(user):
@@ -194,6 +201,30 @@ def delete_user():
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
+
+@application.after_request
+def after_request(response):
+    inputs = rest_utils.RESTContext(request)
+    print(after_request_dict)
+    print(inputs.endpoint in after_request_dict)
+    if inputs.endpoint in after_request_dict:
+        if inputs.method in after_request_dict[inputs.endpoint]:
+            user_id = inputs.path.split("/")[2]
+            friend_id = inputs.data["friend_id"]
+            message = {
+                "user_id": user_id,
+                "friend_id": friend_id,
+            }
+            
+            client = boto3.client('sns', region_name="us-east-1")
+            sns_response = client.publish(
+                TargetArn="arn:aws:sns:us-east-1:593444383578:test",
+                Message=json.dumps({'default': json.dumps(message)}),
+                Subject=after_request_dict[request.endpoint][request.method]["subject"],
+                MessageStructure='json'
+            )
+    
+    return response
 
 if __name__ == '__main__':
     application.run(host="0.0.0.0", port=5000)

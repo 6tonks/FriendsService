@@ -21,3 +21,7 @@ Friends microservice for Stonks! project.
 - Create environment
 - notes:
 	- https://stackoverflow.com/questions/62479386/no-module-named-application-error-while-deploying-simple-web-app-to-elastic-be
+
+### Setup Lambda
+- https://docs.aws.amazon.com/lambda/latest/dg/python-package.html#python-package-create-package-with-dependency
+- Important! dont forget to add SNS permission to any services using it.
