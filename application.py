@@ -205,24 +205,25 @@ def delete_user():
 @application.after_request
 def after_request(response):
     inputs = rest_utils.RESTContext(request)
-    print(after_request_dict)
-    print(inputs.endpoint in after_request_dict)
     if inputs.endpoint in after_request_dict:
         if inputs.method in after_request_dict[inputs.endpoint]:
-            user_id = inputs.path.split("/")[2]
-            friend_id = inputs.data["friend_id"]
-            message = {
-                "user_id": user_id,
-                "friend_id": friend_id,
-            }
-            
-            client = boto3.client('sns', region_name="us-east-1")
-            sns_response = client.publish(
-                TargetArn="arn:aws:sns:us-east-1:593444383578:test",
-                Message=json.dumps({'default': json.dumps(message)}),
-                Subject=after_request_dict[request.endpoint][request.method]["subject"],
-                MessageStructure='json'
-            )
+            try:
+                user_id = inputs.path.split("/")[2]
+                friend_id = inputs.data["friend_id"]
+                message = {
+                    "user_id": user_id,
+                    "friend_id": friend_id,
+                }
+                
+                client = boto3.client('sns', region_name="us-east-1")
+                sns_response = client.publish(
+                    TargetArn="arn:aws:sns:us-east-1:593444383578:test",
+                    Message=json.dumps({'default': json.dumps(message)}),
+                    Subject=after_request_dict[request.endpoint][request.method]["subject"],
+                    MessageStructure='json'
+                )
+            except Exception as e:
+                logging.error("after_request, e = {}".format(e))
     
     return response
 
