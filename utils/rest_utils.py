@@ -30,6 +30,8 @@ class RESTContext:
         self.limit = RESTContext._default_limit
 
         self.path = request_context.path
+        self.endpoint = request_context.endpoint
+
         args = dict(request_context.args)
 
         args = self._de_array_args(args)
@@ -80,6 +82,7 @@ class RESTContext:
         result = {
             'path': self.path,
             "path_parameters": self.path_parameters,
+            "endpoint": self.endpoint,
             'args': self.args,
             'headers': self.headers,
             'limit': self.limit,
