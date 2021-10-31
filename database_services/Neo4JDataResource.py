@@ -133,6 +133,7 @@ class Neo4JDataResource:
             props_str += "{}: {},".format(key, value)
         props_str = '{' + props_str[:-1] + '}'
 
+        print(whereclause)
         q = "MATCH (n:{} {})-[:{}]->(m) RETURN m".format(label, props_str, relationship)
         
         if offset:
