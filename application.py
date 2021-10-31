@@ -27,7 +27,49 @@ CORS(application)
 def get_friends(user):
     try:
         user = str(user)
-        res = FriendsResource.get_friends(user)
+        inputs = rest_utils.RESTContext(request)
+        rest_utils.log_request("get_friends", inputs)
+
+        # Where clause
+        wc = inputs.args
+
+        # Pagination
+        offs = inputs.offset
+        lim = inputs.limit
+        if not inputs.limit or (int(lim) > inputs._default_limit):
+            lim = inputs._default_limit
+
+        friend_list = FriendsResource.get_friends(user, lim, offs, wc)
+        
+        res = {}
+        res['friend_list'] = friend_list
+        
+        # links
+        res['links'] = []
+        # self & prev links
+        if offs:
+            self_href = f'{inputs.path}?limit={lim}&offset={offs}'
+            
+            # only have prev when we have offset already
+            temp = int(offs)-int(lim)
+            if temp > 0:
+                prev_href = f'{inputs.path}?limit={lim}&offset={str(temp)}'
+            else: 
+                prev_href = f'{inputs.path}?limit={lim}'
+            res['links'].append({'rel': 'prev', 'href': prev_href})
+
+        else:
+            self_href = f'{inputs.path}?limit={lim}'
+        res['links'].append({'rel': 'self', 'href': self_href})
+
+        # next links -> only give next when data not empty
+        if friend_list:
+            if offs:
+                next_href = f'{inputs.path}?limit={lim}&offset={str(int(offs)+int(lim))}'
+            else:
+                next_href = f'{inputs.path}?limit={lim}&offset={lim}'
+            res['links'].append({'rel': 'next', 'href': next_href})
+        
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
@@ -41,7 +83,47 @@ def get_friends(user):
 def get_pending_friends(user):
     try:
         user = str(user)
-        res = FriendsResource.get_pending_friends(user)
+        # res = FriendsResource.get_pending_friends(user)
+        inputs = rest_utils.RESTContext(request)
+        rest_utils.log_request("get_pending_friends", inputs)
+
+        # Pagination
+        offs = inputs.offset
+        lim = inputs.limit
+        if not inputs.limit or (int(lim) > inputs._default_limit):
+            lim = inputs._default_limit
+
+        friend_list = FriendsResource.get_pending_friends(user, lim, offs)
+        
+        res = {}
+        res['friend_list'] = friend_list
+
+        # links
+        res['links'] = []
+        # self & prev links
+        if offs:
+            self_href = f'{inputs.path}?limit={lim}&offset={offs}'
+            
+            # only have prev when we have offset already
+            temp = int(offs)-int(lim)
+            if temp > 0:
+                prev_href = f'{inputs.path}?limit={lim}&offset={str(temp)}'
+            else: 
+                prev_href = f'{inputs.path}?limit={lim}'
+            res['links'].append({'rel': 'prev', 'href': prev_href})
+
+        else:
+            self_href = f'{inputs.path}?limit={lim}'
+        res['links'].append({'rel': 'self', 'href': self_href})
+
+        # next links -> only give next when data not empty
+        if friend_list:
+            if offs:
+                next_href = f'{inputs.path}?limit={lim}&offset={str(int(offs)+int(lim))}'
+            else:
+                next_href = f'{inputs.path}?limit={lim}&offset={lim}'
+            res['links'].append({'rel': 'next', 'href': next_href})
+
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
@@ -55,7 +137,47 @@ def get_pending_friends(user):
 def get_pending_friends_request(user):
     try:
         user = str(user)
-        res = FriendsResource.get_pending_friends_request(user)
+        # res = FriendsResource.get_pending_friends_request(user)
+        inputs = rest_utils.RESTContext(request)
+        rest_utils.log_request("get_pending_friends_request", inputs)
+
+        # Pagination
+        offs = inputs.offset
+        lim = inputs.limit
+        if not inputs.limit or (int(lim) > inputs._default_limit):
+            lim = inputs._default_limit
+
+        friend_list = FriendsResource.get_pending_friends_request(user, lim, offs)
+        
+        res = {}
+        res['friend_list'] = friend_list
+
+        # links
+        res['links'] = []
+        # self & prev links
+        if offs:
+            self_href = f'{inputs.path}?limit={lim}&offset={offs}'
+            
+            # only have prev when we have offset already
+            temp = int(offs)-int(lim)
+            if temp > 0:
+                prev_href = f'{inputs.path}?limit={lim}&offset={str(temp)}'
+            else: 
+                prev_href = f'{inputs.path}?limit={lim}'
+            res['links'].append({'rel': 'prev', 'href': prev_href})
+
+        else:
+            self_href = f'{inputs.path}?limit={lim}'
+        res['links'].append({'rel': 'self', 'href': self_href})
+
+        # next links -> only give next when data not empty
+        if friend_list:
+            if offs:
+                next_href = f'{inputs.path}?limit={lim}&offset={str(int(offs)+int(lim))}'
+            else:
+                next_href = f'{inputs.path}?limit={lim}&offset={lim}'
+            res['links'].append({'rel': 'next', 'href': next_href})
+
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
@@ -74,7 +196,8 @@ def accept_friend_request(user):
         if inputs.method == "POST":
             friend = inputs.data["friend_id"]
             res = FriendsResource.accept_friend_request(user, friend)
-            rsp = Response(json.dumps(res), status=200, content_type="application/json")
+            # Response 201 for POST -- CREATED
+            rsp = Response(json.dumps(res), status=201, content_type="application/json")
         else:
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
@@ -94,7 +217,8 @@ def decline_friend_request(user):
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
             res = FriendsResource.decline_friend_request(user, friend)
-            rsp = Response(json.dumps(res), status=200, content_type="application/json")
+            # Response 204 for DELETE
+            rsp = Response(json.dumps(res), status=204, content_type="application/json")
         else:
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
@@ -114,7 +238,8 @@ def add_friend_request(user):
         if inputs.method == "POST":
             friend = inputs.data["friend_id"]
             res = FriendsResource.add_friend_request(user, friend)
-            rsp = Response(json.dumps(res), status=200, content_type="application/json")
+            # Response 201 for POST -- CREATED
+            rsp = Response(json.dumps(res), status=201, content_type="application/json")
         else:
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
@@ -134,7 +259,8 @@ def cancel_friend_request(user):
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
             res = FriendsResource.cancel_friend_request(user, friend)
-            rsp = Response(json.dumps(res), status=200, content_type="application/json")
+            # Response 204 for DELETE
+            rsp = Response(json.dumps(res), status=204, content_type="application/json")
         else:
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
@@ -173,7 +299,10 @@ def insert_user():
         if inputs.method == "POST":
             user = inputs.data["user_id"]
             res = FriendsResource.insert_user(user)
-            rsp = Response(json.dumps(res), status=200, content_type="application/json")
+            # add url location for reference
+            res['location'] = f'/friends/{res["user_id"]}'
+            # Response 201 for POST -- CREATED
+            rsp = Response(json.dumps(res), status=201, content_type="application/json")
         else:
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
@@ -192,7 +321,8 @@ def delete_user():
         if inputs.method == "DELETE":
             user = inputs.data["user_id"]
             res = FriendsResource.delete_user(user)
-            rsp = Response(json.dumps(res), status=200, content_type="application/json")
+            # Response 204 for DELETE
+            rsp = Response(json.dumps(res), status=204, content_type="application/json")
         else:
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
@@ -228,4 +358,4 @@ def after_request(response):
     return response
 
 if __name__ == '__main__':
-    application.run(host="0.0.0.0", port=5000)
+    application.run(host="0.0.0.0", port=5001)
