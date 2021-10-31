@@ -18,23 +18,23 @@ class FriendsResource(BaseApplicationResource):
         return res
 
     @classmethod
-    def get_pending_friends(cls, user, limit=10, offset=None):
+    def get_pending_friends(cls, user, limit=10, offset=None, whereclause={}):
         db_resource = context.get_db_resource()
         template = {
             'label': "user",
             'template': {"user_id": "'{}'".format(user)},
         }
-        res = db_resource.find_by_node_relationship_inward(template, relationship="PENDING_FRIEND", limit=limit, offset=offset)
+        res = db_resource.find_by_node_relationship_inward(template, relationship="PENDING_FRIEND", limit=limit, offset=offset, whereclause=whereclause)
         return res
 
     @classmethod
-    def get_pending_friends_request(cls, user, limit=10, offset=None):
+    def get_pending_friends_request(cls, user, limit=10, offset=None, whereclause={}):
         db_resource = context.get_db_resource()
         template = {
             "label": "user",
             'template': {"user_id": "'{}'".format(user)},
         }
-        res = db_resource.find_by_node_relationship_outward(template, relationship="PENDING_FRIEND", limit=limit, offset=offset)
+        res = db_resource.find_by_node_relationship_outward(template, relationship="PENDING_FRIEND", limit=limit, offset=offset, whereclause=whereclause)
         return res
 
     @classmethod

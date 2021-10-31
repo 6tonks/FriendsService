@@ -133,8 +133,15 @@ class Neo4JDataResource:
             props_str += "{}: {},".format(key, value)
         props_str = '{' + props_str[:-1] + '}'
 
-        print(whereclause)
-        q = "MATCH (n:{} {})-[:{}]->(m) RETURN m".format(label, props_str, relationship)
+        if whereclause:
+            cols = list(whereclause.keys())
+            wc_terms = [f"m.{c}" + f"='{whereclause[c]}'" for c in cols]
+            parsed_wc = " AND ".join(wc_terms)
+            
+            q = "MATCH (n:{} {})-[:{}]->(m) WHERE {} RETURN m".format(label, props_str, relationship, parsed_wc)
+
+        else:
+            q = "MATCH (n:{} {})-[:{}]->(m) RETURN m".format(label, props_str, relationship)
         
         if offset:
             q += f" SKIP {offset}"
@@ -157,7 +164,15 @@ class Neo4JDataResource:
             props_str += "{}: {},".format(key, value)
         props_str = '{' + props_str[:-1] + '}'
 
-        q = "MATCH (n:{} {})<-[:{}]-(m) RETURN m".format(label, props_str, relationship)
+        if whereclause:
+            cols = list(whereclause.keys())
+            wc_terms = [f"m.{c}" + f"='{whereclause[c]}'" for c in cols]
+            parsed_wc = " AND ".join(wc_terms)
+            
+            q = "MATCH (n:{} {})<-[:{}]-(m) WHERE {} RETURN m".format(label, props_str, relationship, parsed_wc)
+
+        else:
+            q = "MATCH (n:{} {})<-[:{}]-(m) RETURN m".format(label, props_str, relationship)
 
         if offset:
             q += f" SKIP {offset}"

@@ -30,14 +30,7 @@ def get_friends(user):
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("get_friends", inputs)
 
-        # Where clause
-        wc = inputs.args
-
-        # Pagination
-        offs = inputs.offset
-        lim = inputs.limit
-        if not inputs.limit or (int(lim) > inputs._default_limit):
-            lim = inputs._default_limit
+        wc, lim, offs, links = FriendsResource.get_links(inputs)
 
         friend_list = FriendsResource.get_friends(user, lim, offs, wc)
         
@@ -45,30 +38,11 @@ def get_friends(user):
         res['friend_list'] = friend_list
         
         # links
-        res['links'] = []
-        # self & prev links
-        if offs:
-            self_href = f'{inputs.path}?limit={lim}&offset={offs}'
-            
-            # only have prev when we have offset already
-            temp = int(offs)-int(lim)
-            if temp > 0:
-                prev_href = f'{inputs.path}?limit={lim}&offset={str(temp)}'
-            else: 
-                prev_href = f'{inputs.path}?limit={lim}'
-            res['links'].append({'rel': 'prev', 'href': prev_href})
+        res['links'] = links
 
-        else:
-            self_href = f'{inputs.path}?limit={lim}'
-        res['links'].append({'rel': 'self', 'href': self_href})
-
-        # next links -> only give next when data not empty
-        if friend_list:
-            if offs:
-                next_href = f'{inputs.path}?limit={lim}&offset={str(int(offs)+int(lim))}'
-            else:
-                next_href = f'{inputs.path}?limit={lim}&offset={lim}'
-            res['links'].append({'rel': 'next', 'href': next_href})
+        # remove next if empty friend_list or result less than limit
+        if not friend_list or len(friend_list)<int(lim):
+            res['links'] = res['links'][:-1]
         
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -87,42 +61,19 @@ def get_pending_friends(user):
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("get_pending_friends", inputs)
 
-        # Pagination
-        offs = inputs.offset
-        lim = inputs.limit
-        if not inputs.limit or (int(lim) > inputs._default_limit):
-            lim = inputs._default_limit
+        wc, lim, offs, links = FriendsResource.get_links(inputs)
 
-        friend_list = FriendsResource.get_pending_friends(user, lim, offs)
+        friend_list = FriendsResource.get_pending_friends(user, lim, offs, wc)
         
         res = {}
         res['friend_list'] = friend_list
 
         # links
-        res['links'] = []
-        # self & prev links
-        if offs:
-            self_href = f'{inputs.path}?limit={lim}&offset={offs}'
-            
-            # only have prev when we have offset already
-            temp = int(offs)-int(lim)
-            if temp > 0:
-                prev_href = f'{inputs.path}?limit={lim}&offset={str(temp)}'
-            else: 
-                prev_href = f'{inputs.path}?limit={lim}'
-            res['links'].append({'rel': 'prev', 'href': prev_href})
+        res['links'] = links
 
-        else:
-            self_href = f'{inputs.path}?limit={lim}'
-        res['links'].append({'rel': 'self', 'href': self_href})
-
-        # next links -> only give next when data not empty
-        if friend_list:
-            if offs:
-                next_href = f'{inputs.path}?limit={lim}&offset={str(int(offs)+int(lim))}'
-            else:
-                next_href = f'{inputs.path}?limit={lim}&offset={lim}'
-            res['links'].append({'rel': 'next', 'href': next_href})
+        # remove next if empty friend_list or result less than limit
+        if not friend_list or len(friend_list)<int(lim):
+            res['links'] = res['links'][:-1]
 
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -141,42 +92,19 @@ def get_pending_friends_request(user):
         inputs = rest_utils.RESTContext(request)
         rest_utils.log_request("get_pending_friends_request", inputs)
 
-        # Pagination
-        offs = inputs.offset
-        lim = inputs.limit
-        if not inputs.limit or (int(lim) > inputs._default_limit):
-            lim = inputs._default_limit
+        wc, lim, offs, links = FriendsResource.get_links(inputs)
 
-        friend_list = FriendsResource.get_pending_friends_request(user, lim, offs)
+        friend_list = FriendsResource.get_pending_friends_request(user, lim, offs, wc)
         
         res = {}
         res['friend_list'] = friend_list
 
         # links
-        res['links'] = []
-        # self & prev links
-        if offs:
-            self_href = f'{inputs.path}?limit={lim}&offset={offs}'
-            
-            # only have prev when we have offset already
-            temp = int(offs)-int(lim)
-            if temp > 0:
-                prev_href = f'{inputs.path}?limit={lim}&offset={str(temp)}'
-            else: 
-                prev_href = f'{inputs.path}?limit={lim}'
-            res['links'].append({'rel': 'prev', 'href': prev_href})
+        res['links'] = links
 
-        else:
-            self_href = f'{inputs.path}?limit={lim}'
-        res['links'].append({'rel': 'self', 'href': self_href})
-
-        # next links -> only give next when data not empty
-        if friend_list:
-            if offs:
-                next_href = f'{inputs.path}?limit={lim}&offset={str(int(offs)+int(lim))}'
-            else:
-                next_href = f'{inputs.path}?limit={lim}&offset={lim}'
-            res['links'].append({'rel': 'next', 'href': next_href})
+        # remove next if empty friend_list or result less than limit
+        if not friend_list or len(friend_list)<int(lim):
+            res['links'] = res['links'][:-1]
 
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
@@ -280,7 +208,8 @@ def delete_friend(user):
         if inputs.method == "DELETE":
             friend = inputs.data["friend_id"]
             res = FriendsResource.delete_friend(user, friend)
-            rsp = Response(json.dumps(res), status=200, content_type="application/json")
+            # Response 204 for DELETE
+            rsp = Response(json.dumps(res), status=204, content_type="application/json")
         else:
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
