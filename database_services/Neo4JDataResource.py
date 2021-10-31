@@ -86,7 +86,7 @@ class Neo4JDataResource:
         tx = self._graph.begin(readonly=False)
         tx.create(n)
         tx.commit()
-        return n
+        return dict(n) # change to dict for JSON response
 
     def create_relationship(self, template_a, template_b, relationship):
         try:
@@ -125,7 +125,7 @@ class Neo4JDataResource:
 
         return None
 
-    def find_by_node_relationship_outward(self, template, relationship):
+    def find_by_node_relationship_outward(self, template, relationship, limit=10, offset=None, whereclause={}):
         label = template.get("label", None)
         props = template.get("template", None)
         props_str = ''
@@ -133,15 +133,30 @@ class Neo4JDataResource:
             props_str += "{}: {},".format(key, value)
         props_str = '{' + props_str[:-1] + '}'
 
-        q = "MATCH (n:{} {})-[:{}]->(m) RETURN m".format(label, props_str, relationship)
+        if whereclause:
+            cols = list(whereclause.keys())
+            wc_terms = [f"m.{c}" + f"='{whereclause[c]}'" for c in cols]
+            parsed_wc = " AND ".join(wc_terms)
+            
+            q = "MATCH (n:{} {})-[:{}]->(m) WHERE {} RETURN m".format(label, props_str, relationship, parsed_wc)
+
+        else:
+            q = "MATCH (n:{} {})-[:{}]->(m) RETURN m".format(label, props_str, relationship)
+        
+        if offset:
+            q += f" SKIP {offset}"
+        q += f" LIMIT {limit}"
+        
         res = self.run_q(q, args=None).data()
 
         result = []
         for x in res:
-            result.append(str(x))
+            # change to dict for JSON response
+            ret = dict(x)['m'] 
+            result.append(dict(ret)) 
         return result
 
-    def find_by_node_relationship_inward(self, template, relationship):
+    def find_by_node_relationship_inward(self, template, relationship, limit=10, offset=None, whereclause={}):
         label = template.get("label", None)
         props = template.get("template", None)
         props_str = ''
@@ -149,12 +164,27 @@ class Neo4JDataResource:
             props_str += "{}: {},".format(key, value)
         props_str = '{' + props_str[:-1] + '}'
 
-        q = "MATCH (n:{} {})<-[:{}]-(m) RETURN m".format(label, props_str, relationship)
+        if whereclause:
+            cols = list(whereclause.keys())
+            wc_terms = [f"m.{c}" + f"='{whereclause[c]}'" for c in cols]
+            parsed_wc = " AND ".join(wc_terms)
+            
+            q = "MATCH (n:{} {})<-[:{}]-(m) WHERE {} RETURN m".format(label, props_str, relationship, parsed_wc)
+
+        else:
+            q = "MATCH (n:{} {})<-[:{}]-(m) RETURN m".format(label, props_str, relationship)
+
+        if offset:
+            q += f" SKIP {offset}"
+        q += f" LIMIT {limit}"
+
         res = self.run_q(q, args=None).data()
 
         result = []
         for x in res:
-            result.append(str(x))
+            # change to dict for JSON response
+            ret = dict(x)['m'] 
+            result.append(dict(ret)) 
         return result
 
     def update_node(self, label, keys, data):
