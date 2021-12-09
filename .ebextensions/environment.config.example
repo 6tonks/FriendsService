@@ -5,3 +5,4 @@ option_settings:
     DBPORT: 7687
     DBUSER: neo4j
     DBPASSWORD: password
+    SNS_ARN: arn:aws:sns:us-east-1:123456789012:test

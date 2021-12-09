@@ -1,24 +1,18 @@
-from flask import Flask, Response, request
-from flask_cors import CORS
 import json
-import uuid
-import boto3
 import logging
+
+import uuid
+from flask_cors import CORS
+from flask import Flask, Response, request
+
+from utils import rest_utils
+from middleware.notification import notify_sns
+from application_services.FriendsResource.friends_service import FriendsResource
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
-from application_services.FriendsResource.friends_service import FriendsResource
-from utils import rest_utils
-
-after_request_dict = {
-    "add_friend_request": {"POST": {"subject": "NEW FRIEND REQUEST ADDED"}},
-    "accept_friend_request": {"POST": {"subject": "NEW FRIEND ADDED"}},
-    "decline_friend_request": {"DELETE": {"subject": "A FRIEND REQUEST IS DECLINED"}},
-    "cancel_friend_request": {"DELETE": {"subject": "A FRIEND REQUEST IS CANCELLED"}},
-    "delete_friend": {"DELETE": {"subject": "A FRIEND IS DELETED"}}
-}
 
 application = Flask(__name__)
 CORS(application)
@@ -47,7 +41,7 @@ def get_friends(user):
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>, e = {}".format(e))
+        logger.error("/friends/<user>, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -78,7 +72,7 @@ def get_pending_friends(user):
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>/pending, e = {}".format(e))
+        logger.error("/friends/<user>/pending, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -109,7 +103,7 @@ def get_pending_friends_request(user):
         rsp = Response(json.dumps(res), status=200, content_type="application/json")
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>/pending_request, e = {}".format(e))
+        logger.error("/friends/<user>/pending_request, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -130,7 +124,7 @@ def accept_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>/accept, e = {}".format(e))
+        logger.error("/friends/<user>/accept, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -151,7 +145,7 @@ def decline_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>/decline, e = {}".format(e))
+        logger.error("/friends/<user>/decline, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -172,7 +166,7 @@ def add_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>/add, e = {}".format(e))
+        logger.error("/friends/<user>/add, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -193,7 +187,7 @@ def cancel_friend_request(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>/cancel, e = {}".format(e))
+        logger.error("/friends/<user>/cancel, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -214,7 +208,7 @@ def delete_friend(user):
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/<user>/remove, e = {}".format(e))
+        logger.error("/friends/<user>/remove, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -236,7 +230,7 @@ def insert_user():
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/insert, e = {}".format(e))
+        logger.error("/friends/insert, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
@@ -256,35 +250,15 @@ def delete_user():
             rsp = Response("NOT IMPLEMENTED", status=501)
     except Exception as e:
         # HTTP status code.
-        logging.error("/friends/delete, e = {}".format(e))
+        logger.error("/friends/delete, e = {}".format(e))
         rsp = Response("INTERNAL ERROR", status=500, content_type="text/plain")
 
     return rsp
 
 @application.after_request
 def after_request(response):
-    inputs = rest_utils.RESTContext(request)
-    if inputs.endpoint in after_request_dict:
-        if inputs.method in after_request_dict[inputs.endpoint]:
-            try:
-                user_id = inputs.path.split("/")[2]
-                friend_id = inputs.data["friend_id"]
-                message = {
-                    "user_id": user_id,
-                    "friend_id": friend_id,
-                }
-                
-                client = boto3.client('sns', region_name="us-east-1")
-                sns_response = client.publish(
-                    TargetArn="arn:aws:sns:us-east-1:593444383578:test",
-                    Message=json.dumps({'default': json.dumps(message)}),
-                    Subject=after_request_dict[request.endpoint][request.method]["subject"],
-                    MessageStructure='json'
-                )
-            except Exception as e:
-                logging.error("after_request, e = {}".format(e))
-    
+    notify_sns(request)
     return response
 
 if __name__ == '__main__':
-    application.run(host="0.0.0.0", port=5001)
+    application.run(host="0.0.0.0", port=5000)
